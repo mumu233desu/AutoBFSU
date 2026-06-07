@@ -95,9 +95,9 @@ jobs:
         run: |
           cd dist
           if [ "${{ runner.os }}" == "macOS" ]; then
-            python -m zipfile -c ../${{ matrix.artifact_name }}.zip main.app
+            python -c "import shutil; shutil.make_archive('../${{ matrix.artifact_name }}', 'zip', '.', 'main.app')"
           else
-            python -m zipfile -c ../${{ matrix.artifact_name }}.zip main.dist
+            python -c "import shutil; shutil.make_archive('../${{ matrix.artifact_name }}', 'zip', '.', 'main.dist')"
           fi
 
       - name: Package Release Tarball (Linux)
