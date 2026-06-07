@@ -1,0 +1,19 @@
+[project]
+name = "auto-bfsu"
+version = "0.1.0"
+description = "A lightweight and efficient background notification monitor for Beijing Foreign Studies University (BFSU)."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.0",
+    "customtkinter>=5.2.0",
+    "python-dotenv>=1.0.0",
+    "openai>=1.10.0",
+    "pyexecjs>=1.5.1",
+    "pystray>=0.19.5",
+    "pillow>=12.2.0",
+]
+
+[project.scripts]
+auto-bfsu = "auto_bfsu.main:main"
