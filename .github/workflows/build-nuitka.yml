@@ -63,7 +63,7 @@ jobs:
             --include-data-files=auto_bfsu/auth/des.js=auto_bfsu/auth/des.js \
             --output-dir=dist \
             --python-flag=no_docstrings \
-            --lto=yes \
+            --lto=no \
             --nofollow-import-to=unittest \
             --nofollow-import-to=IPython \
             --nofollow-import-to=tkinter.test \
