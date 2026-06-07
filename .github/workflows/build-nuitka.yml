@@ -1,14 +1,6 @@
 name: Compile Standalone Cross-Platform EXE with Nuitka
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - 'v*'
-  pull_request:
-    branches:
-      - master
   workflow_dispatch:
 
 jobs:
@@ -59,7 +51,7 @@ jobs:
         shell: bash
         run: |
           uv sync
-          uv pip install --system nuitka
+          uv pip install nuitka
 
       - name: Compile Standalone Executable with Nuitka
         shell: bash

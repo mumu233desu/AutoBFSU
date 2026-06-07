@@ -123,6 +123,7 @@ history.json
 *.html
 *.txt
 *.js
+!auto_bfsu/auth/des.js
 
 scratch/
 ref/
