@@ -7,14 +7,20 @@ import sys
 class DATA_BLOB(ctypes.Structure):
     _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_byte))]
 
+def _xor_cipher(data: bytes, key: str = "AutoBFSU_Secret_Key_2026") -> bytes:
+    """A simple symmetric XOR cipher for cross-platform obfuscation."""
+    key_bytes = key.encode("utf-8")
+    return bytes(b ^ key_bytes[i % len(key_bytes)] for i, b in enumerate(data))
+
 def encrypt_password(password: str) -> str:
     """Encrypt password using Windows DPAPI, returned as base64 string."""
     if not password:
         return ""
     if not sys.platform.startswith("win"):
-        # Fallback to simple Base64 obfuscation for non-Windows
+        # Fallback to symmetric XOR obfuscation for non-Windows
         try:
-            encoded = base64.b64encode(password.encode("utf-8")).decode("utf-8")
+            encrypted_bytes = _xor_cipher(password.encode("utf-8"))
+            encoded = base64.b64encode(encrypted_bytes).decode("utf-8")
             return f"OBF:{encoded}"
         except Exception:
             return password
@@ -51,7 +57,8 @@ def encrypt_password(password: str) -> str:
     except Exception as e:
         print(f"[Crypto] DPAPI encryption failed, falling back to basic encoding: {e}")
         try:
-            encoded = base64.b64encode(password.encode("utf-8")).decode("utf-8")
+            encrypted_bytes = _xor_cipher(password.encode("utf-8"))
+            encoded = base64.b64encode(encrypted_bytes).decode("utf-8")
             return f"OBF:{encoded}"
         except Exception:
             return password
@@ -63,7 +70,14 @@ def decrypt_password(encrypted_str: str) -> str:
     if encrypted_str.startswith("OBF:"):
         try:
             b64_data = encrypted_str[4:]
-            return base64.b64decode(b64_data.encode("utf-8")).decode("utf-8")
+            encrypted_bytes = base64.b64decode(b64_data.encode("utf-8"))
+            decrypted_bytes = _xor_cipher(encrypted_bytes)
+            # Try to decode as utf-8, if it fails it might be old pure base64
+            try:
+                return decrypted_bytes.decode("utf-8")
+            except UnicodeDecodeError:
+                # Backward compatibility for old pure base64 OBF strings
+                return base64.b64decode(b64_data.encode("utf-8")).decode("utf-8")
         except Exception:
             return encrypted_str
     if not encrypted_str.startswith("DPAPI:"):
