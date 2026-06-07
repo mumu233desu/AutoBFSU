@@ -85,8 +85,8 @@ jobs:
           if [ -d "dist/main.dist" ]; then
             cp .env.example dist/main.dist/.env.example
           fi
-          if [ -d "dist/AutoBFSU.app/Contents/MacOS" ]; then
-            cp .env.example dist/AutoBFSU.app/Contents/MacOS/.env.example
+          if [ -d "dist/main.app/Contents/MacOS" ]; then
+            cp .env.example dist/main.app/Contents/MacOS/.env.example
           fi
 
       - name: Package Release ZIP (Windows & macOS)
@@ -95,9 +95,9 @@ jobs:
         run: |
           cd dist
           if [ "${{ runner.os }}" == "macOS" ]; then
-            zip -r ../${{ matrix.artifact_name }}.zip AutoBFSU.app
+            python -m zipfile -c ../${{ matrix.artifact_name }}.zip main.app
           else
-            zip -r ../${{ matrix.artifact_name }}.zip main.dist
+            python -m zipfile -c ../${{ matrix.artifact_name }}.zip main.dist
           fi
 
       - name: Package Release Tarball (Linux)
