@@ -42,13 +42,12 @@ def update_autostart_bat():
 rem ====================================================================
 rem AutoBFSU Windows 开机静默自启脚本 (极速闪烁模式)
 rem ====================================================================
-rem 重要提示: 如果您将此文件复制到了 Windows 启动文件夹中，
-rem 请确保将下方括号中的路径修改为您的项目文件夹实际绝对路径！
+rem 重要提示: 请不要移动此文件！
+rem 如果您想手动设置开机启动，请为本文件创建一个“快捷方式”，
+rem 然后将“快捷方式”放入 Windows 的“启动”文件夹 (shell:startup) 中。
 rem ====================================================================
 
-set PROJECT_DIR={Config.BASE_DIR}
-
-cd /d "%PROJECT_DIR%"
+cd /d "%~dp0"
 if exist .venv\\Scripts\\pythonw.exe (
     start "" ".venv\\Scripts\\pythonw.exe" main.py --daemon
 ) else (

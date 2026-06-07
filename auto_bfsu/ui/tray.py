@@ -138,7 +138,7 @@ def setup_tray(daemon, root_window):
         item("打开历史通知", on_history),
         item("立即检查通知", on_check),
         item("助手参数设置", on_settings),
-        item("开机自启动", on_autostart, checked=lambda item: is_autostart_enabled()),
+        item("开机自启动", on_autostart, checked=lambda item: is_autostart_enabled(), visible=lambda item: sys.platform.startswith('win')),
         item("关闭开发者模式", on_disable_dev, visible=lambda item: getattr(Config, 'DEVELOPER_MODE', False))
     ]
     

@@ -1,0 +1,137 @@
+name: Compile Standalone Cross-Platform EXE with Nuitka
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Package on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            artifact_name: AutoBFSU-windows-x64
+            nuitka_os_args: "--windows-console-mode=disable --output-filename=AutoBFSU.exe"
+            archive_ext: "zip"
+          - os: macos-latest
+            artifact_name: AutoBFSU-macos
+            nuitka_os_args: "--macos-create-app-bundle --macos-app-name=AutoBFSU"
+            archive_ext: "zip"
+          - os: ubuntu-latest
+            artifact_name: AutoBFSU-linux-x64
+            nuitka_os_args: ""
+            archive_ext: "tar.gz"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System Dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk libgirepository1.0-dev gcc libcairo2-dev pkg-config gir1.2-gtk-3.0 gir1.2-appindicator3-0.1 libappindicator3-1
+
+      - name: Set up uv
+        shell: bash
+        run: |
+          pip install uv
+          uv --version
+
+      - name: Install Dependencies
+        shell: bash
+        run: |
+          uv sync
+          uv pip install --system nuitka
+
+      - name: Compile Standalone Executable with Nuitka
+        shell: bash
+        run: |
+          uv run nuitka \
+            --standalone \
+            --enable-plugin=tk-inter \
+            --include-package-data=customtkinter \
+            --include-data-files=auto_bfsu/auth/des.js=auto_bfsu/auth/des.js \
+            --output-dir=dist \
+            --python-flag=no_docstrings \
+            --lto=yes \
+            --nofollow-import-to=unittest \
+            --nofollow-import-to=IPython \
+            --nofollow-import-to=tkinter.test \
+            --nofollow-import-to=PIL.ImageQt \
+            --nofollow-import-to=PIL._avif \
+            --nofollow-import-to=PIL._webp \
+            --nofollow-import-to=PIL._imagingcms \
+            --nofollow-import-to=PIL._imagingmath \
+            --noinclude-custom-mode=unittest:error \
+            --noinclude-custom-mode=tkinter.test:error \
+            --noinclude-custom-mode=PIL.ImageQt:error \
+            --noinclude-custom-mode=IPython:error \
+            ${{ matrix.nuitka_os_args }} \
+            main.py
+
+      - name: Copy .env template
+        shell: bash
+        run: |
+          if [ -d "dist/main.dist" ]; then
+            cp .env.example dist/main.dist/.env.example
+          fi
+          if [ -d "dist/AutoBFSU.app/Contents/MacOS" ]; then
+            cp .env.example dist/AutoBFSU.app/Contents/MacOS/.env.example
+          fi
+
+      - name: Package Release ZIP (Windows & macOS)
+        if: matrix.archive_ext == 'zip'
+        shell: bash
+        run: |
+          cd dist
+          if [ "${{ runner.os }}" == "macOS" ]; then
+            zip -r ../${{ matrix.artifact_name }}.zip AutoBFSU.app
+          else
+            zip -r ../${{ matrix.artifact_name }}.zip main.dist
+          fi
+
+      - name: Package Release Tarball (Linux)
+        if: matrix.archive_ext == 'tar.gz'
+        shell: bash
+        run: |
+          cd dist/main.dist
+          tar -czvf ../../${{ matrix.artifact_name }}.tar.gz *
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}-standalone
+          path: ${{ matrix.artifact_name }}.${{ matrix.archive_ext }}
+          retention-days: 14
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact_name }}.${{ matrix.archive_ext }}
+          draft: false
+          prerelease: false
+          body: |
+            ## AutoBFSU Standalone v${{ github.ref_name }}
+            
+            这是北外智能助手 (AutoBFSU) 的原生 Standalone 编译版本。
+            
+            **⚠️ 注意：此版本通过 GitHub Actions 跨平台矩阵自动编译。目前仅对 Windows 版本进行了深入测试，macOS 和 Linux 版本可能在托盘渲染 (pystray) 等平台特性上存在不稳定因素，请相关系统的用户自行测试与 Debug。**
