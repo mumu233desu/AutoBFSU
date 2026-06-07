@@ -114,6 +114,17 @@ class SettingsWindow(ctk.CTkToplevel):
         self.tab_ai = self.tabview.add("   🤖 AI 总结   ")
         
         # ------------------ TAB 1: 🔐 账号凭证 ------------------
+        import sys
+        if not sys.platform.startswith("win"):
+            warning_lbl = ctk.CTkLabel(
+                self.tab_auth, 
+                text="⚠️ 跨平台安全提示: 当前系统环境缺乏硬件级 DPAPI 支持，已回退至对称混淆保护。\n请避免在此处输入与您其他关键网络账户（如微信、银行）相同的通用密码！", 
+                text_color="#FF9F0A",
+                justify="left",
+                font=get_font(size=12, weight="bold")
+            )
+            warning_lbl.pack(anchor="w", padx=20, pady=(10, 0))
+            
         # Digital BFSU Username
         ctk.CTkLabel(self.tab_auth, text="数字北外账号 (Username):", font=get_font(size=13, weight="bold")).pack(anchor="w", padx=20, pady=(15, 2))
         self.ent_user = ctk.CTkEntry(self.tab_auth, width=380, fg_color=COLOR_BG, border_color=COLOR_BORDER, text_color=COLOR_TEXT_LIGHT)
