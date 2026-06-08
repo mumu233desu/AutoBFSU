@@ -458,6 +458,6 @@ class BFSUAutomationDaemon:
             woken_up = self.check_event.wait(timeout=sleep_seconds)
             
             if woken_up:
-                print("[Daemon] Woken up on-demand!")
+                print("[Daemon] Woken up on-demand! Triggering immediate check...")
                 self.check_event.clear()
-                # On manual wake up via UI, usually run_once is called separately, so this just interrupts sleep.
+                next_notification_time = datetime.datetime.now() - datetime.timedelta(seconds=1)

@@ -42,6 +42,7 @@ class Config:
 
     # 4. Storage paths (relative to root)
     SESSION_PATH = BASE_DIR / "session.json"
+    MAX_HISTORY_CACHE = 500
 
 
     # 5. SIS Course Sign-In Scheduled Times (Default slots)

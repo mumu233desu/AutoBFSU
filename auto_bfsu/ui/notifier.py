@@ -234,10 +234,9 @@ class NotificationPopup(ctk.CTkToplevel):
             self.fade_out_started = True
             # Mark as acknowledged when explicitly dismissed by user interaction
             if self.notice_id:
-                from ..portal.scraper import PortalScraper
+                from ..utils.history import HistoryManager
                 try:
-                    scraper = PortalScraper(None)
-                    scraper.mark_notice_acknowledged(self.notice_id)
+                    HistoryManager.mark_acknowledged(self.notice_id)
                     print(f"[Notifier] Notification {self.notice_id} marked as acknowledged.")
                 except Exception as e:
                     print(f"[Notifier] Error marking acknowledged for {self.notice_id}: {e}")
