@@ -234,6 +234,23 @@ class CASClient:
                     print(f"[CASClient] Detected meta-refresh redirect to {redirect_url}. Following...")
                     login_resp = self.session.get(redirect_url, timeout=15)
 
+            # Support course selection peak intermediate bypass page
+            if "进入校园综合服务门户" in login_resp.text or "select_login_box" in login_resp.text:
+                print("[CASClient] Detected course selection peak intermediate page. Re-requesting portal to establish session...")
+                login_resp = self.session.get("https://my.bfsu.edu.cn/tp_up/", allow_redirects=True, timeout=15)
+                
+                # Check for meta-refresh redirect on the final page too
+                soup_redirect = BeautifulSoup(login_resp.text, 'html.parser')
+                meta_tag = soup_redirect.find('meta', attrs={'http-equiv': re.compile(r'refresh', re.I)})
+                if meta_tag and 'url=' in meta_tag.get('content', '').lower():
+                    content_attr = meta_tag.get('content', '')
+                    url_part = re.search(r'url=(.+)', content_attr, re.I)
+                    if url_part:
+                        redirect_url = url_part.group(1).strip()
+                        redirect_url = urllib.parse.urljoin("https://my.bfsu.edu.cn/tp_up/", redirect_url)
+                        print(f"[CASClient] Detected meta-refresh redirect after peak page bypass to {redirect_url}. Following...")
+                        login_resp = self.session.get(redirect_url, timeout=15)
+
             if any(x in login_resp.text for x in ["数字北外", "北京外国语大学", "退出登录", "/tp_up/logout"]) or self.check_login_status():
                 print("[CASClient] Login successful! Persistent session established.")
                 self._save_session()
